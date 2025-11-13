@@ -42,42 +42,40 @@ deaths, and mortality rates in two clinics before and after hand-washing was int
 
 st.caption("Data: Yearly births and deaths by clinic, including period before and after hand-washing (1847).")
 
-# ---------- Line chart: Births & deaths ----------
-st.subheader("Births and deaths over time")
+# ---------- Births over time ----------
+st.subheader("Births over time")
 
-line_base = alt.Chart(plot_df).encode(
-    x=alt.X("Year:O", title="Year")
+births_chart = (
+    alt.Chart(plot_df)
+    .mark_line(point=True)
+    .encode(
+        x=alt.X("Year:O", title="Year"),
+        y=alt.Y("Birth:Q", title="Number of births"),
+        color=alt.Color("Clinic:N", title="Clinic"),
+        tooltip=["Year", "Clinic", "Birth"]
+    )
+    .properties(height=300)
 )
 
-births_line = line_base.mark_line(point=True).encode(
-    y=alt.Y("Birth:Q", title="Number of births"),
-    tooltip=["Year", "Clinic", "Birth", "Deaths", alt.Tooltip("mortality_rate", format=".2f", title="Mortality (%)")]
+st.altair_chart(births_chart, use_container_width=True)
+
+
+# ---------- Deaths over time ----------
+st.subheader("Deaths over time")
+
+deaths_chart = (
+    alt.Chart(plot_df)
+    .mark_line(point=True, color="red")
+    .encode(
+        x=alt.X("Year:O", title="Year"),
+        y=alt.Y("Deaths:Q", title="Number of deaths"),
+        color=alt.Color("Clinic:N", title="Clinic"),
+        tooltip=["Year", "Clinic", "Deaths", alt.Tooltip("mortality_rate", format=".2f")]
+    )
+    .properties(height=300)
 )
 
-deaths_line = line_base.mark_line(point=True).encode(
-    y=alt.Y("Deaths:Q", title="Number of births / deaths"),
-)
-
-# Vertical rule for hand-washing introduction
-handwashing_rule = alt.Chart(pd.DataFrame({"Year": [handwashing_year]})).mark_rule(strokeDash=[4, 4]).encode(
-    x="Year:O"
-)
-
-annotation = alt.Chart(pd.DataFrame({"Year": [handwashing_year], "text": ["Hand-washing introduced"]})).mark_text(
-    dy=-80,  # move text up
-    angle=270
-).encode(
-    x="Year:O",
-    text="text:N"
-)
-
-combined_counts_chart = (births_line + deaths_line + handwashing_rule + annotation).properties(
-    height=350
-)
-
-st.altair_chart(combined_counts_chart, use_container_width=True)
-
-st.caption("Dashed line marks the introduction of hand-washing around 1847.")
+st.altair_chart(deaths_chart, use_container_width=True)
 
 # ---------- Mortality rate chart ----------
 st.subheader("Mortality rate (%) over time")
@@ -91,7 +89,16 @@ mortality_chart = alt.Chart(plot_df).mark_line(point=True).encode(
     height=350
 )
 
+# Vertical rule for hand-washing introduction (now white)
+handwashing_rule = (
+    alt.Chart(pd.DataFrame({"Year": [handwashing_year]}))
+    .mark_rule(strokeDash=[4, 4], color="white")
+    .encode(x="Year:O")
+)
+
 mortality_chart = mortality_chart + handwashing_rule
+
+
 
 st.altair_chart(mortality_chart, use_container_width=True)
 
